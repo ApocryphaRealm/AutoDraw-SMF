@@ -1,0 +1,11 @@
+{
+    "name": "autodraw",
+    "version-string": "1.0.0",
+    "description": "Auto Draw, converted from PrismaUI/PMCM to SKSE Menu Framework, plus a bound-weapon condition",
+    "homepage": "https://github.com/ApocryphaRealm/AutoDraw-SMF",
+    "license": "GPL-3.0",
+    "dependencies": [
+        "commonlibsse-ng"
+    ],
+    "builtin-baseline": "8d3649ba34aab36914ddd897958599aa0a91b08e"
+}
