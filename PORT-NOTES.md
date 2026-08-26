@@ -30,6 +30,19 @@ CommonLibSSE-NG + CMake + vcpkg pattern (see `SMF-CONVERSION-PLAYBOOK.md`).
    `RE::Actor::DrawWeaponMagicHands(bool)` call on `RE::TESObjectWEAP::IsBound()` rather than
    adding new cast/dismiss logic. the author's explicit choice - see the research notes for why.
 
+## GPL-3.0 obligations, since this is copyleft (not MIT like the other three forks)
+
+- **Stays GPL-3.0.** No relicensing to something more permissive - not even partially, not
+  even for new files this fork adds.
+- **Mark what changed.** GPL-3.0 requires modified files to be marked as changed, so problems
+  in the modified version aren't mistakenly attributed to the original author. When a vendored
+  file is actually edited (not just moved/renamed), add a short note at the top of that file
+  saying so - not on files that stay untouched.
+- **Keep source available.** Already satisfied by the public repo; stays true as long as it
+  does.
+- **AI assistance doesn't change any of this.** A modified version is still a derivative work
+  bound by GPL-3.0's terms whether a human or an AI made the edit - see `README.md`.
+
 ## Status
 
 - [x] Source vendored as the baseline commit, credited to the original author
