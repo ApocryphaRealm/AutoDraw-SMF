@@ -7,11 +7,16 @@
 #include "utils/Logger.h"
 #include "utils/Toggle.h"
 
+#include <algorithm>
+
 namespace UI
 {
 	namespace
 	{
 		std::string statusMessage;
+
+		// The slider the arrow keys currently drive. Set by clicking one.
+		std::string selectedSlider;
 
 		constexpr const char* kLogLevelNames[] = { "Trace", "Debug", "Info", "Warning", "Error", "Critical", "Off" };
 		constexpr int kLogLevelCount = 7;
@@ -49,6 +54,11 @@ namespace UI
 				"igSpacing",
 				"igPushItemWidth",
 				"igPopItemWidth",
+				// Needed by NudgeableSlider's arrow-key nudge (ported from Dragon's Eye
+				// Minimap's UI.cpp - CLAUDE.md rule 24).
+				"igIsKeyPressed_Bool",
+				"igIsItemClicked",
+				"igIsItemActive",
 				// Needed by utils/Toggle.h's hand-drawn switch - see that file's own header
 				// comment for why a checkbox-style widget needs this much lower-level access.
 				"igGetCursorScreenPos",
@@ -74,6 +84,47 @@ namespace UI
 			return true;
 		}
 
+		// A slider that the arrow keys can also nudge, once it has been clicked. Dragging is
+		// hopeless for the last decimal place, and the framework does not turn on ImGui's own
+		// keyboard navigation, so this tracks the selection itself rather than changing a
+		// setting shared with every other mod's page. Ported verbatim from Dragon's Eye
+		// Minimap's UI.cpp, which already had this working - see CLAUDE.md rule 24.
+		bool NudgeableSlider(const char* a_label, float* a_value, float a_min, float a_max,
+							 const char* a_format, float a_step)
+		{
+			bool changed = ImGuiMCP::SliderFloat(a_label, a_value, a_min, a_max, a_format);
+
+			if (ImGuiMCP::IsItemClicked() || ImGuiMCP::IsItemActive())
+			{
+				selectedSlider = a_label;
+			}
+
+			if (selectedSlider == a_label)
+			{
+				float nudge = 0.0F;
+
+				if (ImGuiMCP::IsKeyPressed(ImGuiMCP::ImGuiKey_LeftArrow))
+				{
+					nudge -= a_step;
+				}
+				if (ImGuiMCP::IsKeyPressed(ImGuiMCP::ImGuiKey_RightArrow))
+				{
+					nudge += a_step;
+				}
+
+				if (nudge != 0.0F)
+				{
+					*a_value = std::clamp(*a_value + nudge, a_min, a_max);
+					changed = true;
+				}
+
+				ImGuiMCP::SameLine();
+				ImGuiMCP::TextDisabled("<-->");
+			}
+
+			return changed;
+		}
+
 		void HelpMarker(const char* a_description)
 		{
 			ImGuiMCP::SameLine();
@@ -97,7 +148,7 @@ namespace UI
 			ImGuiMCP::Toggle("Auto-sheathe after combat", &enableAutoSheathe);
 			HelpMarker("Sheathes your weapon or magic a set delay after you leave combat, or after you draw it manually.");
 
-			ImGuiMCP::SliderFloat("Sheathe delay (seconds)", &sheatheDelaySeconds, 0.0F, 30.0F, "%.2f");
+			NudgeableSlider("Sheathe delay (seconds)", &sheatheDelaySeconds, 0.0F, 30.0F, "%.2f", 0.1F);
 			HelpMarker("How long to wait, after leaving combat or drawing manually, before sheathing - reset by attacking, blocking, jumping or dodging.");
 
 			ImGuiMCP::Toggle("Exempt bound weapons", &exemptBoundWeapons);
