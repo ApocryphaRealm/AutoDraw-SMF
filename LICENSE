@@ -1,0 +1,19 @@
+GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+This project is licensed under the GNU General Public License v3.0, matching the license the
+original Auto Draw author shipped with the mod's DLL (confirmed via its version resource:
+"LegalCopyright: GPL-3.0 License"). The original mod has no public repository, so the full
+license text is not reproduced here from a canonical upstream source file - see
+https://www.gnu.org/licenses/gpl-3.0.txt for the complete, authoritative license text.
+
+Copyright (C) the original Auto Draw author (Nexus mods/183642).
+Modifications in this repository Copyright (C) the contributors to this fork.
+
+This program is free software: you can redistribute it and/or modify it under the terms of
+the GNU General Public License as published by the Free Software Foundation, either version 3
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+the GNU General Public License for more details.
