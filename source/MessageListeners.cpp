@@ -27,6 +27,12 @@ void SKSEMessageListener(SKSE::MessagingInterface::Message* a_msg)
 		// Framework's module is guaranteed to be in the process if it is installed at all.
 		logger::debug("kPostPostLoad received; registering settings page with SKSE Menu Framework");
 		UI::Register();
+
+		// Rule-17 retry: a real launch showed devbench's own server can still be finishing
+		// startup a moment after kPostLoad fires, which is early enough to lose the race even
+		// though kPostLoad is DevBenchAPI's own documented earliest-safe point. Cheap no-op if
+		// the kPostLoad attempt already succeeded.
+		diagnostics::Init();
 		break;
 
 	case SKSE::MessagingInterface::kDataLoaded:
@@ -43,6 +49,10 @@ void SKSEMessageListener(SKSE::MessagingInterface::Message* a_msg)
 		}
 
 		PlayerAnim::EnsureAttached();
+
+		// Last retry point - if DevBench still isn't found here, conclude it isn't installed
+		// and say so, rather than staying silent about it forever.
+		diagnostics::Init(/* a_lastAttempt = */ true);
 		break;
 
 	case SKSE::MessagingInterface::kPostLoadGame:

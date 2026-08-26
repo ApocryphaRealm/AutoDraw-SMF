@@ -156,14 +156,32 @@ namespace diagnostics
 		}
 	}
 
-	void Init()
+	void Init(bool a_lastAttempt)
 	{
+		static bool registered = false;
+
+		if (registered)
+		{
+			return;
+		}
+
 		DevBenchAPI::IDevBenchInterface001* devBench = DevBenchAPI::GetDevBenchInterface001();
 
 		if (!devBench)
 		{
-			logger::info("DevBench not detected; skipping the \"autodraw.status\" live-diagnostics tool "
-						 "(logging alone still covers this session - see CLAUDE.md rule 31)");
+			if (a_lastAttempt)
+			{
+				logger::info("DevBench not detected; skipping the \"autodraw.status\" live-diagnostics tool "
+							 "(logging alone still covers this session - see CLAUDE.md rule 31)");
+			}
+			else
+			{
+				// Not terminal - devbench's own server can still be finishing startup this
+				// soon after kPostLoad (confirmed from a real launch's timestamps: devbench
+				// finished ~100ms after kPostLoad fired, which was enough to lose this race).
+				// Retried again at the next message point per rule 17.
+				logger::debug("DevBench not detected yet; will retry at the next message");
+			}
 
 			return;
 		}
@@ -184,6 +202,8 @@ namespace diagnostics
 		{
 			logger::warn("DevBench reported \"autodraw.status\" replaced an existing tool of the same name");
 		}
+
+		registered = true;
 	}
 
 	void RecordCombatStateChange(bool a_enteredCombat)

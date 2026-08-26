@@ -10,9 +10,13 @@
 namespace diagnostics
 {
 	// Looks up the DevBench interface (present only if the DevBench plugin is installed) and
-	// registers "autodraw.status". Safe to call even when DevBench is absent - logs why and
-	// does nothing else. Call after SKSE sends kPostLoad, per DevBenchAPI's own contract.
-	void Init();
+	// registers "autodraw.status". Safe to call repeatedly - a real launch showed devbench's
+	// own server can still be finishing startup a moment after SKSE sends kPostLoad (its own
+	// documented earliest-safe point), so this is a rule-17 retry, not a one-shot lookup: call
+	// it again at kPostPostLoad and kDataLoaded too. Every call after the first successful one
+	// is a cheap no-op; only the final call (a_lastAttempt = true) logs that DevBench was never
+	// found, so the "not installed" conclusion isn't reported before every retry is exhausted.
+	void Init(bool a_lastAttempt = false);
 
 	// e->newState transitions seen by CombatEvent::ProcessEvent, for the player specifically -
 	// this mod only acts on the player's own weapon, so tracking any other actor's combat
