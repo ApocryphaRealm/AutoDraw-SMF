@@ -1,0 +1,47 @@
+# AutoDraw-SMF - changelog
+
+Rule 61: this mod's own history, kept beside the code it describes.
+
+> **The entries below this line were RECONSTRUCTED from `version-ledger.json` on
+> 2026-08-27, not written at the time of the change.** They carry only what the ledger
+> recorded - the status and the evidence - so they are thinner than a real entry and may
+> be missing changes the ledger never captured. Treat them as a starting point rather
+> than a record. Everything from the next version onward is written as it happens.
+
+Each version carries its **version-ledger status**: **working** (observed in game),
+**untested** (built, not confirmed), **failed** (built but broken; the number was
+reclaimed), **scratch** (a hypothesis-test build that never held a real number).
+
+## 1.0.5 - 2026-08-27 - untested
+
+### Changed
+- local package only - no tag, no commit, and its own README records no 1.0.5 change at all; reclaim candidate per VERSION-RECONCILIATION.md
+
+### Known
+- LATENT BUG, verified by source inspection 2026-08-27, not yet fixed here: this mod saves its INI with plain file I/O but reads it back through INISettingCollection::ReadFromFile, which uses the Win32 profile API that PrivateProfileRedirector hooks and caches. Under the Redirector a reload is served the values from game start rather than the ones just written - settings appear to save then revert. Worse, once the plugin's INI has been read through that API the Redirector caches it and can write its stale copy back over the file on game-save or exit, losing settings between sessions. Dragon's Eye Minimap 1.5.7 fixed exactly this: prefer values parsed directly from the file in the shared Read<T> helper, and stop calling ReadFromFile so the Redirector never caches our INI at all. CustomDifficultyUI-SMF was fixed earlier and is the precedent.
+
+## 1.0.4 - 2026-08-27 - working
+
+### Changed
+- git tag v1.0.4 pushed; finalized package + zip in 10. finalized mods
+
+## 1.0.3 - 2026-08-27 - working
+
+### Changed
+- PROGRESS.md in-game test 2026-08-26 - toggle recolour and four-direction slider nudge confirmed live
+
+## 1.0.2 - 2026-08-27 - untested
+
+### Changed
+- local package only - no tag, no in-game confirmation
+
+## 1.0.1 - 2026-08-27 - untested
+
+### Changed
+- local package only - no tag, no in-game confirmation
+
+## 1.0.0 - 2026-08-27 - working
+
+### Changed
+- git tag v1.0.0 pushed; PROGRESS.md in-game test 2026-08-26 - instant draw, delayed sheathe, bound-weapon exemption all confirmed
+
