@@ -1,7 +1,7 @@
 # Auto Draw → SMF port notes
 
 Working notes for this port. Background research (before this repo existed) is at
-`current wip mods\AutoDraw-research-notes.md` - read that first, this picks up from it.
+`6. current wip mods\AutoDraw-research-notes.md` - read that first, this picks up from it.
 
 ## Source layout, as vendored (first commit, untouched)
 

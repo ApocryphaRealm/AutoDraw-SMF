@@ -120,4 +120,97 @@ namespace AutoDrawSheathe
 			});
 		}).detach();
 	}
+
+	void SeedFromLoadedState()
+	{
+		// kPostLoadGame fires before the player is reliably resolvable, so this polls rather than
+		// giving up on one lookup (rule 17). The wait is bounded: a save load that has not produced
+		// a usable player within this window has something else wrong with it, and retrying
+		// forever would just hide that.
+		if (!settings::automation::enableAutoSheathe)
+		{
+			logger::trace("SeedFromLoadedState: enableAutoSheathe is off; nothing to seed");
+
+			return;
+		}
+
+		std::thread([] {
+			// Declared inside the thread body rather than captured: fmt takes its arguments by
+			// reference, which odr-uses them, and an uncaptured constexpr from the enclosing scope
+			// would not survive that.
+			constexpr int  kMaxAttempts = 100;
+			constexpr auto kRetryInterval = std::chrono::milliseconds(100);
+
+			for (int attempt = 1; attempt <= kMaxAttempts; ++attempt)
+			{
+				bool resolved = false;
+
+				// The actual read has to happen on the game's own thread, so the poll loop lives
+				// here and each check is posted across - the same split ForceSheathe already uses.
+				std::atomic_bool done{ false };
+
+				SKSE::GetTaskInterface()->AddTask([&resolved, &done, attempt] {
+					RE::PlayerCharacter* player = RE::PlayerCharacter::GetSingleton();
+					RE::ActorState*      state = player ? player->AsActorState() : nullptr;
+
+					if (!player || !state)
+					{
+						// Logged once, on the first miss only - a per-attempt line here would bury
+						// the log in noise for something that is expected to resolve shortly.
+						if (attempt == 1)
+						{
+							logger::debug("SeedFromLoadedState: player not resolvable yet; retrying");
+						}
+
+						done = true;
+
+						return;
+					}
+
+					resolved = true;
+
+					if (!state->IsWeaponDrawn())
+					{
+						logger::trace("SeedFromLoadedState: weapon is not drawn at load; nothing to seed");
+
+						done = true;
+
+						return;
+					}
+
+					// This is the whole point of the function: the weapon was already out when the
+					// save loaded, so no "WeaponDraw" event was ever going to arrive. Schedule the
+					// same delayed check the anim-event path would have.
+					logger::info("SeedFromLoadedState: weapon already drawn at load; scheduling the "
+								 "delayed sheathe check that no WeaponDraw event would have started");
+
+					ForceSheathe(player);
+
+					done = true;
+				});
+
+				while (!done.load())
+				{
+					std::this_thread::sleep_for(std::chrono::milliseconds(5));
+				}
+
+				if (resolved)
+				{
+					if (attempt > 1)
+					{
+						logger::debug("SeedFromLoadedState: player resolved on attempt {}", attempt);
+					}
+
+					return;
+				}
+
+				std::this_thread::sleep_for(kRetryInterval);
+			}
+
+			logger::warn("SeedFromLoadedState: gave up after {} attempts - the player never became "
+						 "resolvable, so a weapon drawn at load will not be sheathed until the next "
+						 "draw event",
+				kMaxAttempts);
+		}).detach();
+	}
 }

@@ -1,4 +1,5 @@
 #include "AnimEventSink.h"
+#include "AutoDraw.h"
 #include "CombatEvent.h"
 #include "Diagnostics.h"
 #include "Settings.h"
@@ -65,6 +66,13 @@ void SKSEMessageListener(SKSE::MessagingInterface::Message* a_msg)
 
 		PlayerAnim::g_attached = false;
 		PlayerAnim::EnsureAttached();
+
+		// Re-attaching the listener is NOT the same as seeding the state. Loading a save with the
+		// weapon already drawn produces no "WeaponDraw" animation event - nothing transitions -
+		// so the delayed sheathe check was never scheduled and the mod appeared dead until the
+		// player manually sheathed and drew again. This reads the state the player is actually in
+		// and acts on it. See AutoDraw.h's SeedFromLoadedState comment for the full reasoning.
+		AutoDrawSheathe::SeedFromLoadedState();
 		break;
 
 	default:
